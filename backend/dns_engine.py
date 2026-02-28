@@ -5,9 +5,13 @@ from backend.config import *
 class DNSEngine:
     def __init__(self):
         self.model = joblib.load(MODEL_FILE)
-        self.top_domains = set(
-            pd.read_csv(TOP1M_FILE, header=None)[1].values
-        )
+        self.top_domains = set()
+        try:
+            with open("top_1m.txt", "r") as f:
+                self.top_domains = {line.strip() for line in f if line.strip()}
+        except FileNotFoundError:
+            print("Warning: top_1m.txt not found. Using empty set.")
+            self.top_domains = {"google.com", "facebook.com"}
 
     def entropy(self, s):
         prob = [float(s.count(c)) / len(s) for c in dict.fromkeys(list(s))]
@@ -39,3 +43,4 @@ class DNSEngine:
 
 
         return pred, prob
+
