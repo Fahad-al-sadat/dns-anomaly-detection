@@ -1,4 +1,4 @@
-import os, datetime, secrets
+import os, datetime, secrets, sys
 from fastapi import FastAPI, Depends, HTTPException, status, Request, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
@@ -142,5 +142,6 @@ async def warning_page(request: Request, domain: str = "unknown"):
 @app.get("/blocked")
 async def get_blocked_page(request: Request, url: str = "Unknown"):
     return templates.TemplateResponse("blocked_ui.html", {"request": request, "url": url})
+
 
 
