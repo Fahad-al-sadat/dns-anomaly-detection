@@ -1,6 +1,6 @@
 import time
 from collections import defaultdict
-from config import *
+from backend.config import *
 
 class BehaviorEngine:
     def __init__(self):
@@ -26,5 +26,6 @@ class BehaviorEngine:
             score += 1
         if unique_domains > UNIQUE_DOMAIN_THRESHOLD:
             score += 1
+
 
         return score
