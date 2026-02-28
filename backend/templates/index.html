@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>D.A.D | Admin Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body class="p-4 md:p-8">
+  <div class="max-w-7xl mx-auto">
+    <header class="flex justify-between items-center mb-8">
+  <div class="flex items-center gap-4">
+    <button onclick="toggleSidebar()" class="p-2 hover:bg-white/10 rounded-lg transition-colors">
+      <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+      </svg>
+    </button>
+    <div>
+      <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">DNS ANOMALY DETECTION</h1>
+      <p class="text-gray-500 text-sm">Automated Neural Traffic Analysis</p>
+    </div>
+  </div>
+  
+  <div class="bg-emerald-500/10 text-emerald-400 px-4 py-2 rounded-full border border-emerald-500/20 text-xs font-bold uppercase flex items-center gap-2">
+    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> Network Active
+  </div>
+</header>
+<div id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-[#0c0c0e] border-r border-white/10 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out shadow-2xl">
+  <div class="p-6">
+    <div class="flex justify-between items-center mb-8">
+      <h2 class="font-bold text-xl text-white">Menu</h2>
+      <button onclick="toggleSidebar()" class="text-gray-500 hover:text-white">✕</button>
+    </div>
+
+    <div class="bg-white/5 p-4 rounded-xl mb-6 border border-white/5">
+      <p class="text-[10px] uppercase text-gray-500 mb-1">Authenticated As</p>
+      <p class="text-sm font-semibold text-emerald-400">{{ username }} <span class="text-gray-500 font-normal">({{ role }})</span></p>
+    </div>
+
+    <nav class="space-y-3">
+      <button onclick="openCheckModel()" class="w-full text-left flex items-center gap-3 bg-blue-500/10 text-blue-400 px-4 py-3 rounded-xl border border-blue-500/20 text-xs font-bold uppercase hover:bg-blue-500 hover:text-white transition-all">
+    🔍 Manual DNS Check
+      </button>
+
+      <button onclick="openIpModal()" class="w-full text-left flex items-center gap-3 bg-emerald-500/10 text-emerald-400 px-4 py-3 rounded-xl border border-emerald-500/20 text-xs font-bold uppercase hover:bg-emerald-500 hover:text-white transition-all">
+    🧮 IP Subnet Calculator
+      </button>
+
+      <button onclick="alert('Downloading Extension...')" class="w-full text-left flex items-center gap-3 bg-white/5 text-gray-300 px-4 py-3 rounded-xl border border-white/10 text-xs font-bold uppercase hover:bg-white/10 transition-all">
+        📦 Download Extension
+      </button>
+      
+      <button onclick="confirmReset()" class="w-full text-left flex items-center gap-3 bg-red-500/5 text-red-400 px-4 py-3 rounded-xl border border-red-500/10 text-xs font-bold uppercase hover:bg-red-500 hover:text-white transition-all">
+        🗑️ Reset All Logs
+      </button>
+
+      <hr class="border-white/5 my-4">
+
+      <a href="/logout" class="flex items-center gap-3 bg-red-500/10 text-red-500 px-4 py-3 rounded-xl border border-red-500/20 text-xs font-bold uppercase hover:bg-red-500 hover:text-white transition-all no-underline justify-center">
+        Logout
+      </a>
+    </nav>
+  </div>
+</div>
+
+<div id="backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-40 hidden backdrop-blur-sm"></div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="glass-card p-6">
+        <p class="text-gray-400 text-xs uppercase">Total Requests</p>
+        <div id="stat-total" class="text-3xl font-bold text-white">0</div>
+      </div>
+      <div class="glass-card p-6 border-red-500/10">
+        <p class="text-red-400 text-xs uppercase">Anomalies</p>
+        <div id="stat-anomalies" class="text-3xl font-bold text-red-500">0</div>
+      </div>
+      <div class="glass-card p-6">
+        <p class="text-orange-400 text-xs uppercase">Threat Level</p>
+        <div id="stat-threat" class="text-3xl font-bold text-orange-400">0%</div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+      <div class="lg:col-span-1 glass-card p-6">
+        <h3 class="text-sm font-semibold mb-6">Anomaly Trend</h3>
+        <div class="h-64"><canvas id="anomalyChart"></canvas></div>
+      </div>
+      <div class="lg:col-span-2 glass-card overflow-hidden">
+        <div class="p-6 border-b border-white/5 font-semibold text-sm">Live Traffic Logs</div>
+        <div class="overflow-x-auto h-[400px]">
+          <table class="w-full text-left">
+    <thead class="sticky top-0 bg-[#0c0c0e] text-gray-400 text-[10px] uppercase">
+        <tr>
+            <th class="p-4">Time</th>
+            <th class="p-4">Source IP</th>
+            <th class="p-4">Domain</th>
+            <th class="p-4 text-center">Status</th> <th class="p-4 text-right">Risk Score</th> </tr>
+    </thead>
+    <tbody id="log-body" class="text-sm"></tbody>
+</table>
+        </div>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
+    <footer class="glass-card p-6" >
+
+      <!-- Top section with columns -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:2.5rem 1.8rem; margin-bottom:3.5rem;">
+
+        <!-- Brand -->
+        <div>
+          <a href="/"
+            style="font-size:1.6rem; font-weight:700; color:white; text-decoration:none; display:block; margin-bottom:0.8rem;">D.A.D</a>
+          <p style="font-size:0.95rem; opacity:0.7; margin:0; max-width:240px;">"Securing digital horizons since 2026."
+          </p>
+        </div>
+
+        <!-- Company -->
+        <div>
+          <h3 style="color:white; font-size:1.1rem; margin:0 0 1rem 0; font-weight:600;">Company</h3>
+          <ul style="list-style:none; padding:0; margin:0;">
+            <li style="margin-bottom:0.6rem;"><a href="/about"
+                style="color:#8b949e; text-decoration:none; transition:color 0.15s;">About us</a></li>
+            <li style="margin-bottom:0.6rem;"><a href="/careers"
+                style="color:#8b949e; text-decoration:none; transition:color 0.15s;">Careers</a></li>
+            <li style="margin-bottom:0.6rem;"><a href="/blog"
+                style="color:#8b949e; text-decoration:none; transition:color 0.15s;">Blog</a></li>
+            <li style="margin-bottom:0.6rem;"><a href="/contact"
+                style="color:#8b949e; text-decoration:none; transition:color 0.15s;">Contact</a></li>
+          </ul>
+        </div>
+
+        <!-- Product -->
+        <div>
+          <h3 style="color:white; font-size:1.1rem; margin:0 0 1rem 0; font-weight:600;">Product</h3>
+          <ul style="list-style:none; padding:0; margin:0;">
+            <li style="margin-bottom:0.6rem;"><a href="/features"
+                style="color:#8b949e; text-decoration:none; transition:color 0.15s;">Features</a></li>
+            <li style="margin-bottom:0.6rem;"><a href="/pricing"
+                style="color:#8b949e; text-decoration:none; transition:color 0.15s;">Pricing</a></li>
+            <li style="margin-bottom:0.6rem;"><a href="/docs"
+                style="color:#8b949e; text-decoration:none; transition:color 0.15s;">Documentation</a></li>
+            <li style="margin-bottom:0.6rem;"><a href="/updates"
+                style="color:#8b949e; text-decoration:none; transition:color 0.15s;">Updates</a></li>
+          </ul>
+        </div>
+
+        <!-- Social + Newsletter -->
+        <div>
+          <div style="display:flex; gap:1.2rem; margin:1.5rem 0 1.8rem;">
+            <a href="#" aria-label="X"
+              style="color:#8b949e; font-size:1.4rem; text-decoration:none; transition:color 0.2s;">𝕏</a>
+            <a href="#" aria-label="GitHub"
+              style="color:#8b949e; font-size:1.4rem; text-decoration:none; transition:color 0.2s;">GitHub</a>
+            <a href="#" aria-label="Discord"
+              style="color:#8b949e; font-size:1.4rem; text-decoration:none; transition:color 0.2s;">Discord</a>
+          </div>
+
+          <div>
+            <label style="display:block; font-size:0.95rem; margin-bottom:0.6rem; color:#c9d1d9;">Rooted in your
+              feedback</label>
+            <div style="display:flex; max-width:320px;">
+              <input type="email" placeholder="your@email.com" required
+                style="flex:1; padding:0.75rem 1rem; border:1px solid #30363d; border-radius:6px 0 0 6px; background:#0d1117; color:white; font-size:0.95rem; outline:none;">
+              <button type="submit"
+                style="padding:0 1.3rem; background:#238636; color:white; border:none; border-radius:0 6px 6px 0; cursor:pointer; font-weight:500; transition:background 0.2s;">→</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom bar -->
+      <div
+        style="border-top:1px solid #21262d; padding-top:1.8rem; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:1.5rem; font-size:0.9rem; color:#8b949e;">
+        <div>© 2026 YourSite — All rights reserved.</div>
+        <div style="display:flex; gap:1.4rem; flex-wrap:wrap; justify-content:center;">
+          <a href="/privacy" style="color:#8b949e; text-decoration:none;">Privacy</a>
+          <a href="/terms" style="color:#8b949e; text-decoration:none;">Terms</a>
+          <a href="/cookies" style="color:#8b949e; text-decoration:none;">Cookies</a>
+        </div>
+      </div>
+
+  </div>
+
+  <!-- Optional hover effects (needs :hover support) -->
+  <style>
+    footer a:hover {
+      color: #58a6ff !important;
+    }
+
+    footer button:hover {
+      background: #2ea043 !important;
+    }
+  </style>
+
+  </footer>
+</div>
+  </div>
+  <div id="checkModel" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[60] hidden flex items-center justify-center p-4">
+    <div class="glass-card w-full max-w-md p-8 relative border-blue-500/20 shadow-2xl">
+        <button onclick="closeCheckModel()" class="absolute top-4 right-4 text-gray-500 hover:text-white text-xl">✕</button>
+        
+        <h2 class="text-xl font-bold text-white mb-2">Manual DNS Scan</h2>
+        <p class="text-gray-400 text-xs mb-6 uppercase tracking-widest">Input domain or URL to analyze</p>
+        
+        <div class="space-y-4">
+            <input type="text" id="manualDomain" placeholder="example.com or http://malicious.site/path" 
+                   class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-blue-500 transition-all">
+            
+            <button onclick="runManualCheck()" id="scanBtn"
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2">
+                <span>START SCAN</span>
+            </button>
+        </div>
+
+        <div id="scanResult" class="mt-6 hidden p-4 rounded-xl border border-white/5 bg-white/5 animate-pulse">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-xs text-gray-500 uppercase">Analysis Result</span>
+                <span id="resStatus" class="font-bold text-xs px-2 py-1 rounded"></span>
+            </div>
+            <div id="resDomain" class="text-sm font-semibold text-blue-400 mb-2 truncate"></div>
+            <div class="flex items-center gap-3">
+                <div class="flex-1 bg-white/10 h-2 rounded-full overflow-hidden">
+                    <div id="resBar" class="h-full transition-all duration-1000"></div>
+                </div>
+                <span id="resScore" class="font-mono text-xs"></span>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="ipModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[70] hidden flex items-center justify-center p-4">
+    <div class="glass-card w-full max-w-sm p-6 border-emerald-500/20 shadow-2xl relative">
+        <button onclick="closeIpModal()" class="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
+        
+        <h2 class="text-xl font-bold mb-4 text-emerald-400">IP Subnet Calculator</h2>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="text-[10px] text-gray-500 uppercase mb-1 block">IP Address / CIDR</label>
+                <input type="text" id="ipInput" placeholder="e.g. 192.168.1.1/24" 
+                       class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-sm text-white outline-none focus:border-emerald-500">
+            </div>
+            
+            <button onclick="calculateIP()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg font-bold text-sm transition-all">
+                CALCULATE
+            </button>
+
+            <div id="ipResult" class="hidden space-y-2 p-3 bg-white/5 rounded-lg border border-white/5 font-mono text-[11px]">
+                <div class="flex justify-between"><span class="text-gray-500">Network:</span> <span id="resNet" class="text-emerald-400"></span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Broadcast:</span> <span id="resBroad" class="text-emerald-400"></span></div>
+                <div class="flex justify-between"><span class="text-gray-500">Total Hosts:</span> <span id="resHosts" class="text-emerald-400"></span></div>
+            </div>
+        </div>
+    </div>
+</div>
+  <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

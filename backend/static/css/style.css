@@ -1,0 +1,44 @@
+body { 
+    font-family: 'Plus Jakarta Sans', sans-serif; 
+    background-color: #050507; 
+    color: #fafafa; 
+}
+
+.glass-card { 
+    background: rgba(255, 255, 255, 0.02); 
+    backdrop-filter: blur(12px); 
+    border: 1px solid rgba(255, 255, 255, 0.05); 
+    border-radius: 20px; 
+}
+
+.anomaly-blink {
+    animation: simple-pulse 1.5s infinite;
+}
+
+@keyframes simple-pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.4; }
+    100% { opacity: 1; }
+}
+
+@keyframes red-flash { 
+    0% { box-shadow: 0 0 0px rgba(239, 68, 68, 0); } 
+    50% { box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); } 
+    100% { box-shadow: 0 0 0px rgba(239, 68, 68, 0); } 
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+#footer
+{
+    margin-top: 5px;
+}
+
+.sidebar-open {
+    transform: translateX(0) !important;
+}
+
+nav button, nav a {
+    letter-spacing: 0.5px;
+}
