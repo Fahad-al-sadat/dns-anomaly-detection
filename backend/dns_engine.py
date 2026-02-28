@@ -1,6 +1,6 @@
 import os, re, joblib, math
 import pandas as pd
-from config import *
+from backend.config import *
 
 class DNSEngine:
     def __init__(self):
@@ -36,5 +36,6 @@ class DNSEngine:
         features = [self.extract_features(domain)]
         pred = self.model.predict(features)[0]
         prob = self.model.predict_proba(features)[0][1]
+
 
         return pred, prob
