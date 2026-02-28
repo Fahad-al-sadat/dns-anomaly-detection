@@ -13,6 +13,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from urllib.parse import urlparse
 import backend.config as config
 
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 
@@ -142,6 +144,7 @@ async def warning_page(request: Request, domain: str = "unknown"):
 @app.get("/blocked")
 async def get_blocked_page(request: Request, url: str = "Unknown"):
     return templates.TemplateResponse("blocked_ui.html", {"request": request, "url": url})
+
 
 
 
